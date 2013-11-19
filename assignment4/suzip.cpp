@@ -12,24 +12,13 @@ public:
     huffman_node* right_child;
     int weight;
     char ch;
-    bool is_leaf;
 
-    huffman_node()
-    {
-        this->left_child = NULL;
-        this->right_child = NULL;
-        this->ch = 0;
-        this->weight = 0;
-        this->is_leaf = true;
-    }
-
-    huffman_node(huffman_node* lc, huffman_node* rc, char c, int w, bool _is_leaf)
+    huffman_node(huffman_node* lc, huffman_node* rc, char c, int w)
     {
         this->left_child = lc;
         this->right_child = rc;
         this->ch = c;
         this->weight = w;
-        this->is_leaf = _is_leaf;
     }
 
     ~huffman_node()
@@ -76,12 +65,9 @@ class huffman_tree
 {
 public:
     huffman_node* root;
-    
-    huffman_tree(map<char, int> weight_list)
+
+    huffman_tree(map<char, int>& weight_list)
     {
-        if (this->root != NULL) {
-            delete this->root;
-        }
         this->root = build_huffman_tree(weight_list);
     }
 
@@ -93,29 +79,61 @@ public:
         }
     }
 
-    huffman_node* build_huffman_tree(map<char, int> weight_list) 
+    huffman_node* build_huffman_tree(map<char, int>& weight_list)
     {
-        huffman_node** 
+        huffman_node* root = NULL;
+        if (weight_list.empty()) {
+            return root;
+        }
+
+        multimap<int, huffman_node*> cur_list;
+        for (map<char, int>::iterator it = weight_list.begin();
+                it != weight_list.end(); ++it) {
+            huffman_node* node = new huffman_node(NULL, NULL, it->first, it->second);
+            cur_list.insert(pair<int, huffman_node*>(node->weight, node));
+        }
+
+        while (cur_list.size() > 1) {
+            //get the min 2 elements
+            multimap<int, huffman_node*>::iterator it_min = cur_list.begin(),
+                                                   it_min2 = it_min;
+            it_min2++;
+
+            //new node whose weight is the sum of the 2 elements above
+            huffman_node* node = new huffman_node(it_min->second, it_min2->second,
+                    0, it_min->first + it_min2->first);
+            cur_list.erase(cur_list.begin());
+            cur_list.erase(cur_list.begin());
+            cur_list.insert(pair<int, huffman_node*>(node->weight, node));
+        }
+
+        root = cur_list.begin()->second;
+
+        return root;
     }
 
-    static void gen_weight_list(const char* filename, int weight_list[]) 
+    map<char, string> get_huffman_code_table()
     {
-        
+        map<char, string> table;
+        return table;
     }
+
 };
 
 
 class suzip
 {
-    
+public:
+    huffman_tree t;
 };
 
 int main()
 {
     map<char, int> wl = get_weight_list("in.txt");
-    for (map<char, int>::iterator it = wl.begin(); it != wl.end(); ++it) {
-        cout << it->first << " " << it->second << endl;
-    }
 
+    huffman_tree t(wl);
+
+#ifdef _WIN32_
     system("pause");
+#endif
 }
